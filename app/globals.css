@@ -53,6 +53,15 @@ html.light .bg-slate-800:hover {
   color: #0f172a !important;
 }
 
+/* Table Row Hover in Light Mode */
+html.light tr:hover {
+  background-color: #f1f5f9 !important;
+}
+
+html.light tr:hover td {
+  color: #0f172a !important;
+}
+
 /* Text Hierarchy & Contrast Fixes */
 html.light .text-white {
   color: #0f172a !important;

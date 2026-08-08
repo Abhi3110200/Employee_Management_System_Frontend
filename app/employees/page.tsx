@@ -570,7 +570,7 @@ function EmployeeDirectoryContent() {
                     const fallbackCode = rawId ? `EMP-${rawId.slice(-4).toUpperCase()}` : 'EMP-1000';
 
                     return (
-                      <tr key={rawId || emp.email} className="hover:bg-slate-800/40 transition-colors">
+                      <tr key={rawId || emp.email} className="hover:bg-slate-100/80 dark:hover:bg-slate-800/40 transition-colors">
                         <td className="py-4 px-5 font-mono text-xs text-indigo-400 font-bold">
                           {emp.employeeId || fallbackCode}
                         </td>
