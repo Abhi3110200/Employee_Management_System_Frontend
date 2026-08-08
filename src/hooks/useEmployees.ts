@@ -154,7 +154,8 @@ export function useEmployees(filters: EmployeeFilters = {}) {
 
   const exportCSV = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/employees/export/csv', {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${baseUrl}/employees/export/csv`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
