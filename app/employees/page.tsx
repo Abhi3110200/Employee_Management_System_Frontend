@@ -177,6 +177,8 @@ function EmployeeDirectoryContent() {
     }
 
     try {
+      const cleanManager = formData.manager && formData.manager.trim() !== '' ? formData.manager.trim() : undefined;
+
       if (editingEmployee) {
         // Edit Employee
         const empId = editingEmployee.id || editingEmployee._id;
@@ -197,7 +199,7 @@ function EmployeeDirectoryContent() {
           joiningDate: formData.joiningDate,
           status: formData.status,
           role: formData.role,
-          manager: formData.manager as any,
+          manager: cleanManager as any,
           profileImage: formData.profileImage,
           address: formData.address,
         };
@@ -223,7 +225,7 @@ function EmployeeDirectoryContent() {
           joiningDate: formData.joiningDate,
           status: formData.status,
           role: formData.role,
-          manager: formData.manager as any,
+          manager: cleanManager as any,
           profileImage: formData.profileImage,
           address: formData.address,
         });
@@ -231,7 +233,7 @@ function EmployeeDirectoryContent() {
 
       setIsModalOpen(false);
     } catch (err: any) {
-      setModalError(err.message || 'Operation failed. Check permissions.');
+      setModalError(err.message || 'Failed to save employee. Check inputs & permissions.');
     }
   };
 
@@ -957,7 +959,7 @@ function EmployeeDirectoryContent() {
                 </div>
               </div>
 
-              <div className="pt-4 flex justify-end gap-3 border-t border-slate-800">
+              <div className="sticky bottom-0 bg-slate-900 pt-4 pb-2 border-t border-slate-800 flex justify-end gap-3 mt-6 z-20">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
@@ -968,7 +970,7 @@ function EmployeeDirectoryContent() {
                 <button
                   type="submit"
                   disabled={isCreating || isUpdating}
-                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2"
+                  className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2"
                 >
                   {(isCreating || isUpdating) && (
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
