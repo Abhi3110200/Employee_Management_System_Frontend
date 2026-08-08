@@ -550,18 +550,18 @@ function EmployeeDirectoryContent() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm border-collapse">
+              <table className="w-full text-left text-sm border-collapse align-middle">
                 <thead>
                   <tr className="border-b border-slate-800 bg-slate-950/60 text-slate-400 text-xs font-semibold uppercase tracking-wider">
-                    <th className="py-4 px-5">ID</th>
-                    <th className="py-4 px-5">Employee</th>
-                    <th className="py-4 px-5">Designation</th>
-                    <th className="py-4 px-5">Department</th>
-                    <th className="py-4 px-5">Joining Date</th>
-                    <th className="py-4 px-5">Salary</th>
-                    <th className="py-4 px-5">Status</th>
-                    <th className="py-4 px-5">Role</th>
-                    <th className="py-4 px-5 text-right">Actions</th>
+                    <th className="py-4 px-5 whitespace-nowrap min-w-[100px]">ID</th>
+                    <th className="py-4 px-5 whitespace-nowrap min-w-[220px]">Employee</th>
+                    <th className="py-4 px-5 whitespace-nowrap min-w-[160px]">Designation</th>
+                    <th className="py-4 px-5 whitespace-nowrap min-w-[140px]">Department</th>
+                    <th className="py-4 px-5 whitespace-nowrap min-w-[120px]">Joining Date</th>
+                    <th className="py-4 px-5 whitespace-nowrap min-w-[100px]">Salary</th>
+                    <th className="py-4 px-5 whitespace-nowrap min-w-[100px]">Status</th>
+                    <th className="py-4 px-5 whitespace-nowrap min-w-[130px]">Role</th>
+                    <th className="py-4 px-5 text-right whitespace-nowrap min-w-[100px]">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60">
@@ -571,11 +571,11 @@ function EmployeeDirectoryContent() {
 
                     return (
                       <tr key={rawId || emp.email} className="hover:bg-slate-100/80 dark:hover:bg-slate-800/40 transition-colors">
-                        <td className="py-4 px-5 font-mono text-xs text-indigo-400 font-bold">
+                        <td className="py-4 px-5 font-mono text-xs text-indigo-400 font-bold whitespace-nowrap min-w-[100px]">
                           {emp.employeeId || fallbackCode}
                         </td>
 
-                        <td className="py-4 px-5">
+                        <td className="py-4 px-5 min-w-[220px]">
                           <div className="flex items-center gap-3">
                             {emp.profileImage ? (
                               <img
@@ -588,23 +588,23 @@ function EmployeeDirectoryContent() {
                                 {emp.name.charAt(0)}
                               </div>
                             )}
-                            <div>
-                              <div className="font-semibold text-white">{emp.name}</div>
-                              <div className="text-xs text-slate-400">{emp.email}</div>
-                              {emp.phone && <div className="text-[11px] text-slate-500">{emp.phone}</div>}
+                            <div className="overflow-hidden">
+                              <div className="font-semibold text-white truncate">{emp.name}</div>
+                              <div className="text-xs text-slate-400 truncate">{emp.email}</div>
+                              {emp.phone && <div className="text-[11px] text-slate-500 truncate">{emp.phone}</div>}
                             </div>
                           </div>
                         </td>
 
-                        <td className="py-4 px-5 text-slate-300 font-medium">
+                        <td className="py-4 px-5 text-slate-300 font-medium whitespace-nowrap min-w-[160px]">
                           {emp.designation || emp.position || 'Staff Member'}
                         </td>
 
-                        <td className="py-4 px-5 text-slate-300 font-medium">
+                        <td className="py-4 px-5 text-slate-300 font-medium whitespace-nowrap min-w-[140px]">
                           {emp.department || 'N/A'}
                         </td>
 
-                        <td className="py-4 px-5 text-slate-400 text-xs font-mono">
+                        <td className="py-4 px-5 text-slate-400 text-xs font-mono whitespace-nowrap min-w-[120px]">
                           {emp.joiningDate
                             ? new Date(emp.joiningDate).toLocaleDateString('en-US', {
                                 year: 'numeric',
@@ -614,11 +614,11 @@ function EmployeeDirectoryContent() {
                             : 'N/A'}
                         </td>
 
-                        <td className="py-4 px-5 text-slate-300 font-mono">
+                        <td className="py-4 px-5 text-slate-300 font-mono whitespace-nowrap min-w-[100px]">
                           ${emp.salary ? emp.salary.toLocaleString() : '0'}
                         </td>
 
-                        <td className="py-4 px-5">
+                        <td className="py-4 px-5 whitespace-nowrap min-w-[100px]">
                           <span
                             className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full border ${
                               emp.status === 'inactive'
@@ -635,7 +635,7 @@ function EmployeeDirectoryContent() {
                           </span>
                         </td>
 
-                        <td className="py-4 px-5">
+                        <td className="py-4 px-5 whitespace-nowrap min-w-[130px]">
                           <span
                             className={`inline-flex px-2.5 py-1 text-xs font-bold uppercase rounded-full border ${getRoleBadgeStyle(
                               emp.role
@@ -645,7 +645,7 @@ function EmployeeDirectoryContent() {
                           </span>
                         </td>
 
-                        <td className="py-4 px-5 text-right space-x-2">
+                        <td className="py-4 px-5 text-right whitespace-nowrap min-w-[100px] space-x-2">
                           {!showDeleted ? (
                             <>
                               <button
