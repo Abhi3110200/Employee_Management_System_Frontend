@@ -1,11 +1,31 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AuthState, User } from '../types/auth';
 
+const getStoredAuth = () => {
+  if (typeof window === 'undefined') {
+    return { user: null, accessToken: null, isAuthenticated: false };
+  }
+  try {
+    const token = localStorage.getItem('accessToken');
+    const userStr = localStorage.getItem('user');
+    const user = userStr ? JSON.parse(userStr) : null;
+    return {
+      accessToken: token,
+      user,
+      isAuthenticated: !!token && !!user,
+    };
+  } catch (err) {
+    return { user: null, accessToken: null, isAuthenticated: false };
+  }
+};
+
+const stored = getStoredAuth();
+
 const initialState: AuthState = {
-  user: null,
-  accessToken: null,
-  isAuthenticated: false,
-  isLoading: true,
+  user: stored.user,
+  accessToken: stored.accessToken,
+  isAuthenticated: stored.isAuthenticated,
+  isLoading: false,
 };
 
 export const authSlice = createSlice({
@@ -20,20 +40,35 @@ export const authSlice = createSlice({
       state.accessToken = action.payload.accessToken;
       state.isAuthenticated = true;
       state.isLoading = false;
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('accessToken', action.payload.accessToken);
+        localStorage.setItem('user', JSON.stringify(action.payload.user));
+      }
     },
     setAccessToken: (state, action: PayloadAction<string>) => {
       state.accessToken = action.payload;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('accessToken', action.payload);
+      }
     },
     setUser: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
       state.isAuthenticated = true;
       state.isLoading = false;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('user', JSON.stringify(action.payload));
+      }
     },
     logout: (state) => {
       state.user = null;
       state.accessToken = null;
       state.isAuthenticated = false;
       state.isLoading = false;
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('user');
+      }
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
