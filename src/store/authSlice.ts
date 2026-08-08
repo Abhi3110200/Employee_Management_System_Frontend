@@ -34,7 +34,7 @@ export const authSlice = createSlice({
   reducers: {
     setCredentials: (
       state,
-      action: PayloadAction<{ user: User; accessToken: string }>
+      action: PayloadAction<{ user: User; accessToken: string; refreshToken?: string }>
     ) => {
       state.user = action.payload.user;
       state.accessToken = action.payload.accessToken;
@@ -44,12 +44,24 @@ export const authSlice = createSlice({
       if (typeof window !== 'undefined') {
         localStorage.setItem('accessToken', action.payload.accessToken);
         localStorage.setItem('user', JSON.stringify(action.payload.user));
+        if (action.payload.refreshToken) {
+          localStorage.setItem('refreshToken', action.payload.refreshToken);
+        }
       }
     },
-    setAccessToken: (state, action: PayloadAction<string>) => {
-      state.accessToken = action.payload;
+    setAccessToken: (
+      state,
+      action: PayloadAction<{ accessToken: string; refreshToken?: string } | string>
+    ) => {
+      const newToken = typeof action.payload === 'string' ? action.payload : action.payload.accessToken;
+      const newRefresh = typeof action.payload === 'string' ? undefined : action.payload.refreshToken;
+
+      state.accessToken = newToken;
       if (typeof window !== 'undefined') {
-        localStorage.setItem('accessToken', action.payload);
+        localStorage.setItem('accessToken', newToken);
+        if (newRefresh) {
+          localStorage.setItem('refreshToken', newRefresh);
+        }
       }
     },
     setUser: (state, action: PayloadAction<User>) => {
@@ -67,6 +79,7 @@ export const authSlice = createSlice({
       state.isLoading = false;
       if (typeof window !== 'undefined') {
         localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
       }
     },

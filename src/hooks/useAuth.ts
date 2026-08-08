@@ -21,7 +21,7 @@ export function useAuth() {
             method: 'POST',
           });
           if (res.accessToken && res.user) {
-            dispatch(setCredentials({ user: res.user, accessToken: res.accessToken }));
+            dispatch(setCredentials({ user: res.user, accessToken: res.accessToken, refreshToken: (res as any).refreshToken }));
           } else {
             dispatch(setLoading(false));
           }
@@ -43,7 +43,7 @@ export function useAuth() {
     },
     onSuccess: (data) => {
       if (data.accessToken && data.user) {
-        dispatch(setCredentials({ user: data.user, accessToken: data.accessToken }));
+        dispatch(setCredentials({ user: data.user, accessToken: data.accessToken, refreshToken: (data as any).refreshToken }));
         queryClient.invalidateQueries({ queryKey: ['me'] });
       }
     },
@@ -59,7 +59,7 @@ export function useAuth() {
     },
     onSuccess: (data) => {
       if (data.accessToken && data.user) {
-        dispatch(setCredentials({ user: data.user, accessToken: data.accessToken }));
+        dispatch(setCredentials({ user: data.user, accessToken: data.accessToken, refreshToken: (data as any).refreshToken }));
         queryClient.invalidateQueries({ queryKey: ['me'] });
       }
     },

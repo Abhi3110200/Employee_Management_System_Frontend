@@ -30,12 +30,22 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
-export async function apiClient<T = any>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const { accessToken: customToken, onTokenRefreshed, onAuthFailed, headers = {}, ...customConfig } = options;
+export async function apiClient<T>(
+  endpoint: string,
+  options: RequestOptions = {}
+): Promise<T> {
+  const {
+    accessToken: customToken,
+    headers = {},
+    onTokenRefreshed,
+    onAuthFailed,
+    ...customConfig
+  } = options;
 
-  // Always use provided token OR read current active token directly from Redux store
+  // Always use provided token OR read current active token directly from Redux store / localStorage
   const state = store.getState();
-  const activeToken = customToken !== undefined ? customToken : state.auth.accessToken;
+  const storedToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  const activeToken = customToken !== undefined ? customToken : (state.auth.accessToken || storedToken);
 
   const config: RequestInit = {
     method: 'GET',
@@ -51,8 +61,10 @@ export async function apiClient<T = any>(endpoint: string, options: RequestOptio
   const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
   const data = await response.json().catch(() => ({}));
 
-  // Intercept expired access token (401 + TOKEN_EXPIRED)
-  if (response.status === 401 && data.code === 'TOKEN_EXPIRED' && !endpoint.includes('/auth/refresh')) {
+  // Intercept 401 Unauthorized or Expired token responses (excluding login & refresh requests)
+  const is401AuthError = response.status === 401 && !endpoint.includes('/auth/refresh') && !endpoint.includes('/auth/login');
+
+  if (is401AuthError) {
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject, options, endpoint });
@@ -62,19 +74,23 @@ export async function apiClient<T = any>(endpoint: string, options: RequestOptio
     isRefreshing = true;
 
     try {
+      const storedRefreshToken = typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
+
       const refreshRes = await fetch(`${API_BASE_URL}/auth/refresh`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken: storedRefreshToken }),
       });
 
-      const refreshData = await refreshRes.json();
+      const refreshData = await refreshRes.json().catch(() => ({}));
 
       if (refreshRes.ok && refreshData.accessToken) {
         const newToken = refreshData.accessToken;
+        const newRefresh = refreshData.refreshToken;
 
-        // Automatically update Redux store with the new access token and user info
-        store.dispatch(setAccessToken(newToken));
+        // Automatically update Redux store & localStorage with the new access & refresh tokens
+        store.dispatch(setAccessToken({ accessToken: newToken, refreshToken: newRefresh }));
         if (refreshData.user) {
           store.dispatch(setUser(refreshData.user));
         }
