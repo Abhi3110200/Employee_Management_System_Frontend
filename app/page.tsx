@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ProtectedRoute } from '../src/components/ProtectedRoute';
 import { useAuth } from '../src/hooks/useAuth';
 import { useEmployees, useDashboardStats } from '../src/hooks/useEmployees';
+import { ThemeToggle } from '../src/components/ThemeToggle';
 import {
   LogOut,
   UserCheck,
@@ -105,6 +106,8 @@ function DashboardContent() {
           </div>
 
           <div className="flex items-center gap-3 sm:gap-4">
+            <ThemeToggle />
+
             <Link
               href="/hierarchy"
               className="flex items-center gap-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold rounded-xl border border-slate-700 transition-all"

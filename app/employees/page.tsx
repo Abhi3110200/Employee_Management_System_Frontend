@@ -6,6 +6,7 @@ import { ProtectedRoute } from '../../src/components/ProtectedRoute';
 import { useAuth } from '../../src/hooks/useAuth';
 import { useEmployees } from '../../src/hooks/useEmployees';
 import { User, Role, UserStatus } from '../../src/types/auth';
+import { ThemeToggle } from '../../src/components/ThemeToggle';
 import {
   Users,
   UserPlus,
@@ -342,6 +343,8 @@ function EmployeeDirectoryContent() {
           </div>
 
           <div className="flex items-center gap-2.5">
+            <ThemeToggle />
+
             <button
               onClick={exportCSV}
               className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold rounded-xl border border-slate-700 transition-all"
