@@ -165,26 +165,43 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => handleDemoLogin('superadmin@company.com', 'superadmin123')}
-                className="py-2.5 px-2 bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/40 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800/50 rounded-xl text-xs font-bold text-purple-700 dark:text-purple-300 transition-all text-center flex flex-col items-center gap-0.5 shadow-sm"
+                className="py-2.5 px-2 rounded-xl text-xs font-bold transition-all text-center flex flex-col items-center gap-0.5 border shadow-sm hover:scale-[1.02]"
+                style={{
+                  backgroundColor: '#f3e8ff',
+                  borderColor: '#c084fc',
+                  color: '#581c87',
+                }}
               >
-                <span>Super Admin</span>
-                <span className="text-[10px] text-purple-600 dark:text-purple-400 font-medium">Full Access</span>
+                <span className="font-extrabold text-xs" style={{ color: '#581c87' }}>Super Admin</span>
+                <span className="text-[10px] font-bold" style={{ color: '#6b21a8' }}>Full Access</span>
               </button>
+
               <button
                 type="button"
                 onClick={() => handleDemoLogin('hr@company.com', 'hrmanager123')}
-                className="py-2.5 px-2 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800/50 rounded-xl text-xs font-bold text-amber-800 dark:text-amber-300 transition-all text-center flex flex-col items-center gap-0.5 shadow-sm"
+                className="py-2.5 px-2 rounded-xl text-xs font-bold transition-all text-center flex flex-col items-center gap-0.5 border shadow-sm hover:scale-[1.02]"
+                style={{
+                  backgroundColor: '#fef3c7',
+                  borderColor: '#fcd34d',
+                  color: '#78350f',
+                }}
               >
-                <span>HR Manager</span>
-                <span className="text-[10px] text-amber-700 dark:text-amber-400 font-medium">Create/Edit</span>
+                <span className="font-extrabold text-xs" style={{ color: '#78350f' }}>HR Manager</span>
+                <span className="text-[10px] font-bold" style={{ color: '#92400e' }}>Create/Edit</span>
               </button>
+
               <button
                 type="button"
                 onClick={() => handleDemoLogin('employee@company.com', 'employee123')}
-                className="py-2.5 px-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800/50 rounded-xl text-xs font-bold text-indigo-700 dark:text-indigo-300 transition-all text-center flex flex-col items-center gap-0.5 shadow-sm"
+                className="py-2.5 px-2 rounded-xl text-xs font-bold transition-all text-center flex flex-col items-center gap-0.5 border shadow-sm hover:scale-[1.02]"
+                style={{
+                  backgroundColor: '#e0e7ff',
+                  borderColor: '#a5b4fc',
+                  color: '#312e81',
+                }}
               >
-                <span>Employee</span>
-                <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium">View Own</span>
+                <span className="font-extrabold text-xs" style={{ color: '#312e81' }}>Employee</span>
+                <span className="text-[10px] font-bold" style={{ color: '#3730a3' }}>View Own</span>
               </button>
             </div>
           </div>
