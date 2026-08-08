@@ -26,6 +26,7 @@ import {
   ChevronRight,
   FileSpreadsheet,
   RotateCcw,
+  CheckCircle,
 } from 'lucide-react';
 
 function EmployeeDirectoryContent() {
@@ -46,6 +47,16 @@ function EmployeeDirectoryContent() {
   const [editingEmployee, setEditingEmployee] = useState<User | null>(null);
   const [modalError, setModalError] = useState<string | null>(null);
   const [importJsonText, setImportJsonText] = useState('');
+
+  // Delete Modal & Toast State
+  const [deletingEmployee, setDeletingEmployee] = useState<{ id: string; name: string } | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const showToast = (text: string, type: 'success' | 'error' = 'success') => {
+    setToastMessage({ text, type });
+    setTimeout(() => setToastMessage(null), 4000);
+  };
 
   // Form State for all 12 Employee Fields
   const [formData, setFormData] = useState({
@@ -205,6 +216,7 @@ function EmployeeDirectoryContent() {
         };
 
         await updateEmployee({ id: String(empId), data: updatePayload });
+        showToast(`Employee '${formData.name}' updated successfully.`);
       } else {
         // Create Employee
         if (!formData.password || formData.password.length < 6) {
@@ -229,6 +241,7 @@ function EmployeeDirectoryContent() {
           profileImage: formData.profileImage,
           address: formData.address,
         });
+        showToast(`Employee '${formData.name}' created successfully.`);
       }
 
       setIsModalOpen(false);
@@ -237,18 +250,23 @@ function EmployeeDirectoryContent() {
     }
   };
 
-  const handleDelete = async (id: string, name: string) => {
+  const triggerDeleteModal = (id: string, name: string) => {
     if (!isSuperAdmin) {
-      alert('Only Super Admins can delete employee records.');
+      showToast('Only Super Admins can delete employee records.', 'error');
       return;
     }
+    setDeletingEmployee({ id, name });
+    setDeleteError(null);
+  };
 
-    if (window.confirm(`Are you sure you want to soft-delete employee '${name}'?`)) {
-      try {
-        await deleteEmployee(id);
-      } catch (err: any) {
-        alert(err.message || 'Failed to delete employee.');
-      }
+  const confirmDeleteSubmit = async () => {
+    if (!deletingEmployee) return;
+    try {
+      await deleteEmployee(deletingEmployee.id);
+      showToast(`Employee '${deletingEmployee.name}' was soft-deleted successfully.`);
+      setDeletingEmployee(null);
+    } catch (err: any) {
+      setDeleteError(err.message || 'Failed to soft-delete employee record.');
     }
   };
 
@@ -256,9 +274,9 @@ function EmployeeDirectoryContent() {
     if (!isSuperAdmin) return;
     try {
       await restoreEmployee(id);
-      alert(`Employee '${name}' restored successfully.`);
+      showToast(`Employee '${name}' restored successfully.`);
     } catch (err: any) {
-      alert(err.message || 'Failed to restore employee.');
+      showToast(err.message || 'Failed to restore employee.', 'error');
     }
   };
 
@@ -270,9 +288,9 @@ function EmployeeDirectoryContent() {
       await importCSV(rows);
       setIsImportModalOpen(false);
       setImportJsonText('');
-      alert('CSV rows imported successfully.');
+      showToast('CSV employee records imported successfully.');
     } catch (err) {
-      alert('Invalid JSON array format. Example format: [{"name": "Jane", "email": "jane@corp.com"}]');
+      showToast('Invalid JSON format. Expected JSON array of objects.', 'error');
     }
   };
 
@@ -322,7 +340,7 @@ function EmployeeDirectoryContent() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative">
       {/* Top Header Navigation */}
       <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -660,7 +678,7 @@ function EmployeeDirectoryContent() {
 
                               {isSuperAdmin ? (
                                 <button
-                                  onClick={() => handleDelete(rawId, emp.name)}
+                                  onClick={() => triggerDeleteModal(rawId, emp.name)}
                                   disabled={isDeleting}
                                   className="p-2 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 hover:text-rose-200 border border-rose-800/50 transition-all"
                                   title="Soft Delete Employee (Super Admin Only)"
@@ -1033,6 +1051,78 @@ function EmployeeDirectoryContent() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Custom Soft Delete Confirmation Modal */}
+      {deletingEmployee && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative">
+            <button
+              onClick={() => setDeletingEmployee(null)}
+              className="absolute top-6 right-6 p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3.5 mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center shrink-0">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white">Soft-Delete Employee</h3>
+                <span className="text-xs text-rose-400 font-semibold">Action requires confirmation</span>
+              </div>
+            </div>
+
+            <p className="text-sm text-slate-300 mb-6 leading-relaxed">
+              Are you sure you want to soft-delete employee <strong className="text-white font-semibold">{deletingEmployee.name}</strong>? The record will be hidden from active lists and can be restored anytime by a Super Admin.
+            </p>
+
+            {deleteError && (
+              <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{deleteError}</span>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setDeletingEmployee(null)}
+                className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteSubmit}
+                disabled={isDeleting}
+                className="px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-rose-600/20 transition-all flex items-center gap-2"
+              >
+                {isDeleting && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                <span>Confirm Soft Delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Toast Notification */}
+      {toastMessage && (
+        <div
+          className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-2xl border shadow-2xl text-xs font-semibold flex items-center gap-2.5 animate-in slide-in-from-bottom-5 duration-200 ${
+            toastMessage.type === 'success'
+              ? 'bg-emerald-950/90 text-emerald-200 border-emerald-500/40'
+              : 'bg-rose-950/90 text-rose-200 border-rose-500/40'
+          }`}
+        >
+          {toastMessage.type === 'success' ? (
+            <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+          ) : (
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+          )}
+          <span>{toastMessage.text}</span>
         </div>
       )}
     </div>
