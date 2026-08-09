@@ -50,6 +50,7 @@ export interface DashboardStats {
   inactiveEmployees: number;
   departmentCount: number;
   departmentBreakdown: Array<{ department: string; count: number }>;
+  departmentHeadcounts?: Array<{ department: string; count: number }>;
 }
 
 export interface AuthState {

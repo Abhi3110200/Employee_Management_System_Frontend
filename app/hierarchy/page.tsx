@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { ProtectedRoute } from '../../src/components/ProtectedRoute';
+import { Navbar } from '../../src/components/Navbar';
 import { useHierarchyTree, useDirectReports } from '../../src/hooks/useHierarchy';
 import { HierarchyNode, Role } from '../../src/types/auth';
 import { ThemeToggle } from '../../src/components/ThemeToggle';
@@ -160,40 +161,7 @@ function HierarchyPageContent() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
-      {/* Top Header Navigation */}
-      <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white transition-all"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </Link>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-600/30">
-                <GitFork className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="font-bold text-lg text-white leading-tight">Organizational Hierarchy</h1>
-                <span className="text-xs text-slate-400 font-medium">Reporting Tree & Direct Reports Inspector</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-
-            <Link
-              href="/employees"
-              className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-semibold border border-slate-700 transition-all"
-            >
-              <Users className="w-4 h-4 text-indigo-400" />
-              <span>Employee Directory</span>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">

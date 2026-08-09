@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { ProtectedRoute } from '../../src/components/ProtectedRoute';
+import { Navbar } from '../../src/components/Navbar';
 import { useAuth } from '../../src/hooks/useAuth';
 import { useEmployees } from '../../src/hooks/useEmployees';
 import { User, Role, UserStatus } from '../../src/types/auth';
@@ -341,47 +342,40 @@ function EmployeeDirectoryContent() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative">
-      {/* Top Header Navigation */}
-      <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white transition-all"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </Link>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-600/30">
-                <Users className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="font-bold text-lg text-white leading-tight">Employee Directory</h1>
-                <span className="text-xs text-slate-400 font-medium">Enterprise CRUD, CSV & Pagination Engine</span>
-              </div>
+      <Navbar />
+
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        {/* Sub-header Banner with Actions */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-slate-900/60 p-5 rounded-3xl border border-slate-800 backdrop-blur-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-600/30">
+              <Users className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="font-bold text-lg text-white leading-tight">Employee Directory</h1>
+              <span className="text-xs text-slate-400 font-medium">Enterprise CRUD, CSV & Pagination Engine</span>
             </div>
           </div>
 
           <div className="flex items-center gap-2.5">
-            <ThemeToggle />
-
             <button
               onClick={exportCSV}
-              className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold rounded-xl border border-slate-700 transition-all"
+              className="flex items-center gap-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold rounded-xl border border-slate-700 transition-all"
               title="Export employees as CSV file"
             >
               <Download className="w-4 h-4 text-emerald-400" />
-              <span className="hidden sm:inline">Export CSV</span>
+              <span>Export CSV</span>
             </button>
 
             {(isSuperAdmin || isHRManager) && (
               <button
                 onClick={() => setIsImportModalOpen(true)}
-                className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold rounded-xl border border-slate-700 transition-all"
+                className="flex items-center gap-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold rounded-xl border border-slate-700 transition-all"
                 title="Import employees CSV payload"
               >
                 <Upload className="w-4 h-4 text-amber-400" />
-                <span className="hidden sm:inline">Import CSV</span>
+                <span>Import CSV</span>
               </button>
             )}
 
@@ -396,10 +390,6 @@ function EmployeeDirectoryContent() {
             )}
           </div>
         </div>
-      </header>
-
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Search, Filter & Sorting Toolbar */}
         <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4 shadow-lg">
           <div className="flex flex-col lg:flex-row gap-4 justify-between items-center">

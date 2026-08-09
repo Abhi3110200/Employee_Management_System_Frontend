@@ -5,14 +5,12 @@ import Link from 'next/link';
 import { ProtectedRoute } from '../src/components/ProtectedRoute';
 import { useAuth } from '../src/hooks/useAuth';
 import { useEmployees, useDashboardStats } from '../src/hooks/useEmployees';
-import { ThemeToggle } from '../src/components/ThemeToggle';
+import { Navbar } from '../src/components/Navbar';
 import {
-  LogOut,
   UserCheck,
   Building2,
   Users,
   Shield,
-  KeyRound,
   Edit,
   Phone,
   MapPin,
@@ -27,11 +25,15 @@ import {
   PieChart,
   GitFork,
   BarChart3,
+  CalendarDays,
+  Award,
+  Layers,
+  Sparkles,
 } from 'lucide-react';
 
 function DashboardContent() {
-  const { user, logout, isLoggingOut } = useAuth();
-  const { updateEmployee, isUpdating } = useEmployees();
+  const { user } = useAuth();
+  const { updateEmployee } = useEmployees();
   const { data: stats, isLoading: isStatsLoading } = useDashboardStats();
 
   // Self Edit Modal state for Employee role
@@ -39,14 +41,6 @@ function DashboardContent() {
   const [phone, setPhone] = useState(user?.phone || '');
   const [address, setAddress] = useState(user?.address || '');
   const [editError, setEditError] = useState<string | null>(null);
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (err) {
-      console.error('Logout error:', err);
-    }
-  };
 
   const handleSelfUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,57 +86,12 @@ function DashboardContent() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
-      {/* Navigation Header */}
-      <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-600/30">
-              <Building2 className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="font-bold text-lg text-white leading-tight">Employee Portal</h1>
-              <span className="text-xs text-slate-400 font-medium">Enterprise Management & Analytics</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 sm:gap-4">
-            <ThemeToggle />
-
-            <Link
-              href="/hierarchy"
-              className="flex items-center gap-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold rounded-xl border border-slate-700 transition-all"
-            >
-              <GitFork className="w-4 h-4 text-indigo-400" />
-              <span className="hidden sm:inline">Org Hierarchy</span>
-            </Link>
-
-            {isSuperAdminOrHR && (
-              <Link
-                href="/employees"
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/20 transition-all"
-              >
-                <Users className="w-4 h-4" />
-                <span>Manage Directory</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            )}
-
-            <button
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-semibold border border-slate-700 transition-all shadow-sm disabled:opacity-50"
-            >
-              <LogOut className="w-4 h-4 text-rose-400" />
-              <span>{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
-            </button>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Body Content */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Banner */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-900/40 via-purple-900/30 to-slate-900 border border-indigo-500/20 p-6 sm:p-8">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-900/40 via-purple-900/30 to-slate-900 border border-indigo-500/20 p-6 sm:p-8 shadow-2xl">
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
               <div className="flex items-center gap-3 mb-2">
@@ -181,14 +130,117 @@ function DashboardContent() {
           </div>
         </div>
 
+        {/* New Feature Hub Launchers */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-extrabold text-white flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-amber-400" />
+              <span>Enterprise Feature Hubs</span>
+            </h3>
+            <span className="text-xs text-indigo-400 font-bold bg-indigo-500/10 border border-indigo-500/30 px-3 py-1 rounded-full">
+              4 Modules Active
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {/* Feature 1: Attendance & Leave */}
+            <Link
+              href="/attendance"
+              className="bg-slate-900/80 border border-slate-800 hover:border-indigo-500/50 rounded-3xl p-6 transition-all shadow-xl group flex flex-col justify-between"
+            >
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <CalendarDays className="w-6 h-6" />
+                </div>
+                <h4 className="text-base font-bold text-white group-hover:text-indigo-400 transition-colors">
+                  Attendance & Leave
+                </h4>
+                <p className="text-xs text-slate-400 mt-1">
+                  Manage time-off applications, WFH schedules, and leave approvals.
+                </p>
+              </div>
+              <div className="mt-5 flex items-center gap-1.5 text-xs font-bold text-blue-400">
+                <span>Open Tracker</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+
+            {/* Feature 2: Performance & Goals */}
+            <Link
+              href="/performance"
+              className="bg-slate-900/80 border border-slate-800 hover:border-amber-500/50 rounded-3xl p-6 transition-all shadow-xl group flex flex-col justify-between"
+            >
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Award className="w-6 h-6" />
+                </div>
+                <h4 className="text-base font-bold text-white group-hover:text-amber-400 transition-colors">
+                  Performance & Goals
+                </h4>
+                <p className="text-xs text-slate-400 mt-1">
+                  Track quarterly OKRs, rating scorecards, and performance reviews.
+                </p>
+              </div>
+              <div className="mt-5 flex items-center gap-1.5 text-xs font-bold text-amber-400">
+                <span>View Performance</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+
+            {/* Feature 3: Departments & Budget */}
+            <Link
+              href="/departments"
+              className="bg-slate-900/80 border border-slate-800 hover:border-emerald-500/50 rounded-3xl p-6 transition-all shadow-xl group flex flex-col justify-between"
+            >
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Layers className="w-6 h-6" />
+                </div>
+                <h4 className="text-base font-bold text-white group-hover:text-emerald-400 transition-colors">
+                  Department & Budget
+                </h4>
+                <p className="text-xs text-slate-400 mt-1">
+                  Monitor division rosters, lead assignments, and annual budget.
+                </p>
+              </div>
+              <div className="mt-5 flex items-center gap-1.5 text-xs font-bold text-emerald-400">
+                <span>Manage Divisions</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+
+            {/* Feature 4: Visual Analytics Suite */}
+            <Link
+              href="/analytics"
+              className="bg-slate-900/80 border border-slate-800 hover:border-purple-500/50 rounded-3xl p-6 transition-all shadow-xl group flex flex-col justify-between"
+            >
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <BarChart3 className="w-6 h-6" />
+                </div>
+                <h4 className="text-base font-bold text-white group-hover:text-purple-400 transition-colors">
+                  Visual Analytics Suite
+                </h4>
+                <p className="text-xs text-slate-400 mt-1">
+                  Salary band distribution, tenure metrics, and executive CSV reports.
+                </p>
+              </div>
+              <div className="mt-5 flex items-center gap-1.5 text-xs font-bold text-purple-400">
+                <span>Launch Analytics</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+          </div>
+        </div>
+
         {/* Analytics Dashboard Metrics Cards Grid */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-extrabold text-white flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-indigo-400" />
-              <span>Enterprise Dashboard Analytics</span>
+              <span>Enterprise Dashboard Metrics</span>
             </h3>
-            <span className="text-xs text-slate-500 font-medium">Real-time Metrics</span>
+            <span className="text-xs text-slate-500 font-medium">Real-time DB Counts</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -248,157 +300,77 @@ function DashboardContent() {
               <p className="text-[11px] text-slate-500 mt-1">Unique active departments</p>
             </div>
           </div>
+        </div>
 
-          {/* Interactive Visual Department Distribution Chart */}
-          {stats?.departmentBreakdown && stats.departmentBreakdown.length > 0 && (
-            <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm font-bold text-white uppercase tracking-wider">
-                  <BarChart3 className="w-5 h-5 text-indigo-400" />
-                  <span>Department Headcount Analytics Chart</span>
-                </div>
-                <span className="text-xs text-slate-500">Distribution %</span>
+        {/* Headcount Breakdown Charts */}
+        {((stats?.departmentBreakdown && stats.departmentBreakdown.length > 0) || (stats?.departmentHeadcounts && stats.departmentHeadcounts.length > 0)) && (
+          <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <PieChart className="w-5 h-5 text-indigo-400" />
+                  <span>Department Headcount Distribution</span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">Real-time employee breakdown by department</p>
               </div>
+              <span className="text-xs font-extrabold text-indigo-400 bg-indigo-500/10 border border-indigo-500/30 px-3 py-1 rounded-full">
+                Live Data
+              </span>
+            </div>
 
-              <div className="space-y-4">
-                {stats.departmentBreakdown.map((item) => {
-                  const percentage = Math.round((item.count / totalEmpCount) * 100);
-                  return (
-                    <div key={item.department} className="space-y-1.5">
-                      <div className="flex justify-between text-xs font-semibold">
-                        <span className="text-slate-200">{item.department}</span>
-                        <span className="text-slate-400 font-mono">
-                          {item.count} staff ({percentage}%)
-                        </span>
-                      </div>
-                      <div className="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-800">
-                        <div
-                          className="bg-gradient-to-r from-indigo-500 to-purple-600 h-full rounded-full transition-all duration-500"
-                          style={{ width: `${percentage}%` }}
-                        />
-                      </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {(stats?.departmentBreakdown || stats?.departmentHeadcounts || []).map((dept: { department: string; count: number }, idx: number) => {
+                const percentage = Math.round((dept.count / totalEmpCount) * 100);
+                const colors = [
+                  'from-indigo-500 to-purple-500',
+                  'from-purple-500 to-pink-500',
+                  'from-blue-500 to-teal-500',
+                  'from-amber-500 to-orange-500',
+                  'from-emerald-500 to-teal-500',
+                ];
+                const bgGradient = colors[idx % colors.length];
+
+                return (
+                  <div key={dept.department} className="space-y-2 bg-slate-950/60 p-4 rounded-2xl border border-slate-800/80">
+                    <div className="flex items-center justify-between text-xs font-semibold">
+                      <span className="text-slate-200">{dept.department}</span>
+                      <span className="text-slate-400">
+                        {dept.count} Staff ({percentage}%)
+                      </span>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Profile Card */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl relative">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-extrabold text-white flex items-center gap-3">
-              <Briefcase className="w-6 h-6 text-indigo-400" />
-              <span>Personal Employee Profile</span>
-            </h3>
-
-            <button
-              onClick={() => {
-                setPhone(user?.phone || '');
-                setAddress(user?.address || '');
-                setIsEditModalOpen(true);
-              }}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-semibold border border-slate-700/80 transition-all"
-            >
-              <Edit className="w-4 h-4 text-indigo-400" />
-              <span>Edit Contact Info</span>
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-slate-950/60 p-5 rounded-2xl border border-slate-800/80">
-              <div className="text-xs text-slate-500 font-semibold uppercase">Department</div>
-              <div className="text-base font-bold text-slate-100 mt-1">{user?.department || 'Engineering'}</div>
-            </div>
-
-            <div className="bg-slate-950/60 p-5 rounded-2xl border border-slate-800/80">
-              <div className="text-xs text-slate-500 font-semibold uppercase">Position Title</div>
-              <div className="text-base font-bold text-slate-100 mt-1">{user?.position || 'Staff Member'}</div>
-            </div>
-
-            <div className="bg-slate-950/60 p-5 rounded-2xl border border-slate-800/80">
-              <div className="text-xs text-slate-500 font-semibold uppercase">Assigned Role</div>
-              <div className="text-base font-bold text-slate-100 mt-1 uppercase">{formatRoleName(user?.role)}</div>
-            </div>
-
-            <div className="bg-slate-950/60 p-5 rounded-2xl border border-slate-800/80">
-              <div className="text-xs text-slate-500 font-semibold uppercase flex items-center gap-1.5">
-                <Phone className="w-3.5 h-3.5 text-indigo-400" /> Phone Number
-              </div>
-              <div className="text-base font-bold text-slate-100 mt-1">{user?.phone || 'Not specified'}</div>
-            </div>
-
-            <div className="bg-slate-950/60 p-5 rounded-2xl border border-slate-800/80 sm:col-span-2">
-              <div className="text-xs text-slate-500 font-semibold uppercase flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-indigo-400" /> Office Address
-              </div>
-              <div className="text-base font-bold text-slate-100 mt-1">{user?.address || 'Not specified'}</div>
+                    <div className="w-full bg-slate-900 rounded-full h-3 overflow-hidden p-0.5 border border-slate-800">
+                      <div
+                        className={`h-full rounded-full bg-gradient-to-r ${bgGradient} transition-all duration-500`}
+                        style={{ width: `${percentage}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
-        </div>
-
-        {/* RBAC Features Card */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
-            <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center mb-4">
-              <Shield className="w-5 h-5" />
-            </div>
-            <h4 className="font-bold text-white text-base">Super Admin Permissions</h4>
-            <ul className="text-xs text-slate-400 mt-2 space-y-1.5 list-disc list-inside">
-              <li>Full System CRUD access</li>
-              <li>Assign Super Admin & HR Manager roles</li>
-              <li>Delete employee records</li>
-              <li>Assign employee managers</li>
-            </ul>
-          </div>
-
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mb-4">
-              <Users className="w-5 h-5" />
-            </div>
-            <h4 className="font-bold text-white text-base">HR Manager Permissions</h4>
-            <ul className="text-xs text-slate-400 mt-2 space-y-1.5 list-disc list-inside">
-              <li>Create & Edit employee profiles</li>
-              <li>View complete staff directory</li>
-              <li>Cannot delete employees</li>
-              <li>Cannot assign Super Admin role</li>
-            </ul>
-          </div>
-
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mb-4">
-              <KeyRound className="w-5 h-5" />
-            </div>
-            <h4 className="font-bold text-white text-base">Employee Permissions</h4>
-            <ul className="text-xs text-slate-400 mt-2 space-y-1.5 list-disc list-inside">
-              <li>View personal profile & department info</li>
-              <li>Edit own contact info (phone & address)</li>
-              <li>Cannot view full employee directory</li>
-              <li>Cannot alter role, salary, or department</li>
-            </ul>
-          </div>
-        </div>
+        )}
       </main>
 
-      {/* Self Profile Edit Modal */}
+      {/* Profile Edit Modal */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative">
-            <button
-              onClick={() => setIsEditModalOpen(false)}
-              className="absolute top-6 right-6 p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <h3 className="text-xl font-bold text-white mb-2">Edit Contact Information</h3>
-            <p className="text-xs text-slate-400 mb-6">
-              Employees can update personal phone numbers and office addresses.
-            </p>
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-6">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Edit className="w-5 h-5 text-indigo-400" />
+                Edit Profile Contact Info
+              </h3>
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
             {editError && (
-              <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2">
+              <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-xs flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{editError}</span>
               </div>
@@ -406,44 +378,38 @@ function DashboardContent() {
 
             <form onSubmit={handleSelfUpdate} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Phone Number</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Phone Number</label>
                 <input
                   type="text"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+1 (555) 000-0000"
-                  className="w-full py-2.5 px-3 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Address</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Residential Address</label>
                 <input
                   type="text"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  placeholder="123 Main St, City, State"
-                  className="w-full py-2.5 px-3 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
-              <div className="pt-4 flex justify-end gap-3 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm font-semibold transition-all"
+                  className="px-4 py-2 bg-slate-800 text-slate-300 text-xs font-semibold rounded-xl"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={isUpdating}
-                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2"
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl"
                 >
-                  {isUpdating && (
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  )}
-                  <span>Save Changes</span>
+                  Save Profile
                 </button>
               </div>
             </form>
@@ -454,7 +420,7 @@ function DashboardContent() {
   );
 }
 
-export default function DashboardPage() {
+export default function Home() {
   return (
     <ProtectedRoute>
       <DashboardContent />
