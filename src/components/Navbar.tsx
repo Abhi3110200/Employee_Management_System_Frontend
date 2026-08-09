@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '../hooks/useAuth';
+import { useNotifications, NotificationItem } from '../hooks/useNotifications';
 import { ThemeToggle } from './ThemeToggle';
 import {
   Building2,
@@ -21,62 +22,11 @@ import {
   Bell,
   CheckCheck,
   Trash2,
-  ExternalLink,
-  Clock,
-  CheckCircle2,
   AlertTriangle,
   Target,
   Sparkles,
+  CheckCircle2,
 } from 'lucide-react';
-
-export interface NotificationItem {
-  id: string;
-  type: 'task_assigned' | 'leave_update' | 'attendance_alert' | 'performance_review';
-  title: string;
-  message: string;
-  timestamp: string;
-  isRead: boolean;
-  linkHref: string;
-}
-
-const INITIAL_NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: 'n1',
-    type: 'task_assigned',
-    title: 'New Goal Assigned',
-    message: 'Super Admin assigned you "Migrate Microservices to Kubernetes Cluster". Target due: Sep 30.',
-    timestamp: '10m ago',
-    isRead: false,
-    linkHref: '/performance',
-  },
-  {
-    id: 'n2',
-    type: 'leave_update',
-    title: 'Leave Application Approved',
-    message: 'HR Manager approved your 3-day Casual Leave request (Aug 12 – Aug 14).',
-    timestamp: '1h ago',
-    isRead: false,
-    linkHref: '/attendance',
-  },
-  {
-    id: 'n3',
-    type: 'attendance_alert',
-    title: 'Attendance Action Required',
-    message: 'You have 1 pending WFH request awaiting manager approval.',
-    timestamp: '3h ago',
-    isRead: false,
-    linkHref: '/attendance',
-  },
-  {
-    id: 'n4',
-    type: 'performance_review',
-    title: 'Q3 Performance Score Recorded',
-    message: 'Your Q3 2026 performance rating score of 4.9 / 5.0 has been finalized.',
-    timestamp: '1d ago',
-    isRead: true,
-    linkHref: '/performance',
-  },
-];
 
 export function Navbar() {
   const pathname = usePathname();
@@ -84,33 +34,52 @@ export function Navbar() {
   const { user, logout, isLoggingOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
   const [notifFilter, setNotifFilter] = useState<'all' | 'unread'>('all');
 
-  const isSuperAdminOrHR = user?.role === 'super_admin' || user?.role === 'hr_manager';
+  const {
+    notifications,
+    unreadCount,
+    isLoading: isNotifLoading,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+  } = useNotifications();
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const isSuperAdminOrHR = user?.role === 'super_admin' || user?.role === 'hr_manager';
 
   const filteredNotifications = notifications.filter((n) => {
     if (notifFilter === 'unread') return !n.isRead;
     return true;
   });
 
-  const handleMarkAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllAsRead();
+    } catch (err) {
+      console.error('Failed to mark all as read:', err);
+    }
   };
 
-  const handleNotificationClick = (notif: NotificationItem) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === notif.id ? { ...n, isRead: true } : n))
-    );
+  const handleNotificationClick = async (notif: NotificationItem) => {
+    const notifId = notif.id || notif._id;
+    if (notifId && !notif.isRead) {
+      try {
+        await markAsRead(notifId);
+      } catch (err) {
+        console.error('Failed to mark notification as read:', err);
+      }
+    }
     setNotifDropdownOpen(false);
-    router.push(notif.linkHref);
+    router.push(notif.linkHref || '/');
   };
 
-  const handleDeleteNotification = (e: React.MouseEvent, id: string) => {
+  const handleDeleteNotification = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    try {
+      await deleteNotification(id);
+    } catch (err) {
+      console.error('Failed to delete notification:', err);
+    }
   };
 
   const getNotifIcon = (type: NotificationItem['type']) => {
@@ -123,7 +92,20 @@ export function Navbar() {
         return <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />;
       case 'performance_review':
         return <Sparkles className="w-4 h-4 text-purple-400 shrink-0" />;
+      default:
+        return <Bell className="w-4 h-4 text-indigo-400 shrink-0" />;
     }
+  };
+
+  const formatTimestamp = (dateStr?: string) => {
+    if (!dateStr) return 'Just now';
+    const date = new Date(dateStr);
+    const diffMin = Math.floor((Date.now() - date.getTime()) / 60000);
+    if (diffMin < 1) return 'Just now';
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHours = Math.floor(diffMin / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
   const navItems = [
@@ -301,46 +283,53 @@ export function Navbar() {
 
                   {/* Notification List */}
                   <div className="max-h-80 overflow-y-auto divide-y divide-slate-800/60">
-                    {filteredNotifications.length === 0 ? (
+                    {isNotifLoading ? (
+                      <div className="p-8 text-center text-xs text-slate-400">Loading notifications...</div>
+                    ) : filteredNotifications.length === 0 ? (
                       <div className="p-8 text-center text-xs text-slate-500">
                         No notifications found.
                       </div>
                     ) : (
-                      filteredNotifications.map((notif) => (
-                        <div
-                          key={notif.id}
-                          onClick={() => handleNotificationClick(notif)}
-                          className={`p-3.5 hover:bg-slate-800/60 transition-colors cursor-pointer flex items-start gap-3 relative group ${
-                            !notif.isRead ? 'bg-indigo-950/20' : ''
-                          }`}
-                        >
-                          <div className="p-2 rounded-xl bg-slate-800 border border-slate-700/80 shrink-0 mt-0.5">
-                            {getNotifIcon(notif.type)}
-                          </div>
-
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-2">
-                              <h4 className="text-xs font-bold text-white truncate">{notif.title}</h4>
-                              <span className="text-[10px] text-slate-500 shrink-0">{notif.timestamp}</span>
-                            </div>
-                            <p className="text-[11px] text-slate-300 mt-0.5 leading-snug line-clamp-2">
-                              {notif.message}
-                            </p>
-                          </div>
-
-                          {!notif.isRead && (
-                            <div className="w-2 h-2 rounded-full bg-rose-500 shrink-0 self-center"></div>
-                          )}
-
-                          <button
-                            onClick={(e) => handleDeleteNotification(e, notif.id)}
-                            className="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-rose-400 transition-opacity"
-                            title="Dismiss"
+                      filteredNotifications.map((notif) => {
+                        const notifId = notif.id || notif._id || '';
+                        return (
+                          <div
+                            key={notifId}
+                            onClick={() => handleNotificationClick(notif)}
+                            className={`p-3.5 hover:bg-slate-800/60 transition-colors cursor-pointer flex items-start gap-3 relative group ${
+                              !notif.isRead ? 'bg-indigo-950/20' : ''
+                            }`}
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ))
+                            <div className="p-2 rounded-xl bg-slate-800 border border-slate-700/80 shrink-0 mt-0.5">
+                              {getNotifIcon(notif.type)}
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2">
+                                <h4 className="text-xs font-bold text-white truncate">{notif.title}</h4>
+                                <span className="text-[10px] text-slate-500 shrink-0">
+                                  {formatTimestamp(notif.createdAt)}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-slate-300 mt-0.5 leading-snug line-clamp-2">
+                                {notif.message}
+                              </p>
+                            </div>
+
+                            {!notif.isRead && (
+                              <div className="w-2 h-2 rounded-full bg-rose-500 shrink-0 self-center"></div>
+                            )}
+
+                            <button
+                              onClick={(e) => handleDeleteNotification(e, notifId)}
+                              className="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-rose-400 transition-opacity"
+                              title="Dismiss"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        );
+                      })
                     )}
                   </div>
 
