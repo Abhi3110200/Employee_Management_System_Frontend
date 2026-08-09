@@ -36,12 +36,79 @@ function AttendanceContent(): React.JSX.Element {
   const [filterType, setFilterType] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Live Backend Data
+  // Fetch all leave requests for balance tracking
+  const { leaveRequests: allLeaveRequests } = useLeaves({});
+
+  // Live Backend Data filtered for view/table
   const { leaveRequests, applyLeave, updateLeaveStatus } = useLeaves({
     status: filterStatus,
     type: filterType,
     search: searchQuery,
   });
+
+  // Calculate dynamic balances based on user's approved leave requests
+  const leaveBalances = useMemo(() => {
+    const totalAllowances = {
+      casual: 12,
+      sick: 10,
+      paid: 20,
+      remote: 6,
+    };
+
+    const currentUserId = user?.id || (user as any)?._id;
+
+    // Filter approved leaves for the logged-in user (or overall if user context matches)
+    const userApprovedLeaves = allLeaveRequests.filter((r) => {
+      if (r.status !== 'approved') return false;
+      if (!user) return true;
+      const isMatch =
+        (r.employeeId && (r.employeeId === currentUserId || r.employeeId === user.employeeId)) ||
+        (r.employeeName && user.name && r.employeeName.toLowerCase() === user.name.toLowerCase());
+      return isMatch;
+    });
+
+    const used = {
+      casual: 0,
+      sick: 0,
+      paid: 0,
+      remote: 0,
+    };
+
+    userApprovedLeaves.forEach((r) => {
+      const days = r.daysCount || 1;
+      if (r.type in used) {
+        used[r.type as keyof typeof used] += days;
+      }
+    });
+
+    const casualRemaining = Math.max(0, totalAllowances.casual - used.casual);
+    const sickRemaining = Math.max(0, totalAllowances.sick - used.sick);
+    const paidRemaining = Math.max(0, totalAllowances.paid - used.paid);
+    const remoteRemaining = Math.max(0, totalAllowances.remote - used.remote);
+
+    return {
+      casual: {
+        remaining: casualRemaining,
+        total: totalAllowances.casual,
+        percent: Math.round((casualRemaining / totalAllowances.casual) * 100),
+      },
+      sick: {
+        remaining: sickRemaining,
+        total: totalAllowances.sick,
+        percent: Math.round((sickRemaining / totalAllowances.sick) * 100),
+      },
+      paid: {
+        remaining: paidRemaining,
+        total: totalAllowances.paid,
+        percent: Math.round((paidRemaining / totalAllowances.paid) * 100),
+      },
+      remote: {
+        remaining: remoteRemaining,
+        total: totalAllowances.remote,
+        percent: Math.round((remoteRemaining / totalAllowances.remote) * 100),
+      },
+    };
+  }, [allLeaveRequests, user]);
 
   // Modal State
   const todayStr = new Date().toISOString().split('T')[0];
@@ -183,11 +250,11 @@ function AttendanceContent(): React.JSX.Element {
               </div>
             </div>
             <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-white">8</span>
-              <span className="text-sm text-slate-400 font-medium">/ 12 days remaining</span>
+              <span className="text-3xl font-extrabold text-white">{leaveBalances.casual.remaining}</span>
+              <span className="text-sm text-slate-400 font-medium">/ {leaveBalances.casual.total} days remaining</span>
             </div>
             <div className="mt-3 w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-              <div className="bg-blue-500 h-full rounded-full" style={{ width: '66%' }}></div>
+              <div className="bg-blue-500 h-full rounded-full transition-all duration-500" style={{ width: `${leaveBalances.casual.percent}%` }}></div>
             </div>
           </div>
 
@@ -199,11 +266,11 @@ function AttendanceContent(): React.JSX.Element {
               </div>
             </div>
             <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-white">7</span>
-              <span className="text-sm text-slate-400 font-medium">/ 10 days remaining</span>
+              <span className="text-3xl font-extrabold text-white">{leaveBalances.sick.remaining}</span>
+              <span className="text-sm text-slate-400 font-medium">/ {leaveBalances.sick.total} days remaining</span>
             </div>
             <div className="mt-3 w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-              <div className="bg-rose-500 h-full rounded-full" style={{ width: '70%' }}></div>
+              <div className="bg-rose-500 h-full rounded-full transition-all duration-500" style={{ width: `${leaveBalances.sick.percent}%` }}></div>
             </div>
           </div>
 
@@ -215,11 +282,11 @@ function AttendanceContent(): React.JSX.Element {
               </div>
             </div>
             <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-white">14</span>
-              <span className="text-sm text-slate-400 font-medium">/ 20 days remaining</span>
+              <span className="text-3xl font-extrabold text-white">{leaveBalances.paid.remaining}</span>
+              <span className="text-sm text-slate-400 font-medium">/ {leaveBalances.paid.total} days remaining</span>
             </div>
             <div className="mt-3 w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-              <div className="bg-purple-500 h-full rounded-full" style={{ width: '70%' }}></div>
+              <div className="bg-purple-500 h-full rounded-full transition-all duration-500" style={{ width: `${leaveBalances.paid.percent}%` }}></div>
             </div>
           </div>
 
@@ -231,11 +298,11 @@ function AttendanceContent(): React.JSX.Element {
               </div>
             </div>
             <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-white">4</span>
-              <span className="text-sm text-slate-400 font-medium">/ 6 days remaining</span>
+              <span className="text-3xl font-extrabold text-white">{leaveBalances.remote.remaining}</span>
+              <span className="text-sm text-slate-400 font-medium">/ {leaveBalances.remote.total} days remaining</span>
             </div>
             <div className="mt-3 w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-              <div className="bg-emerald-500 h-full rounded-full" style={{ width: '66%' }}></div>
+              <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: `${leaveBalances.remote.percent}%` }}></div>
             </div>
           </div>
         </div>
