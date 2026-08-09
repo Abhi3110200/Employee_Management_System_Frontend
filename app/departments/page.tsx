@@ -22,121 +22,11 @@ import {
   AlertCircle,
 } from 'lucide-react';
 
-export interface DepartmentInfo {
-  id: string;
-  name: string;
-  code: string;
-  leadName: string;
-  leadTitle: string;
-  headcount: number;
-  openPositions: number;
-  totalBudget: number; // in USD
-  spentBudget: number;
-  color: string;
-  projects: string[];
-  members: { name: string; title: string; email: string }[];
-}
-
-const INITIAL_DEPARTMENTS: DepartmentInfo[] = [
-  {
-    id: 'd1',
-    name: 'Engineering',
-    code: 'ENG',
-    leadName: 'Sarah Jenkins',
-    leadTitle: 'VP of Engineering',
-    headcount: 18,
-    openPositions: 4,
-    totalBudget: 950000,
-    spentBudget: 680000,
-    color: 'from-indigo-600 to-purple-600',
-    projects: ['Kubernetes Migration', 'Dual-Token JWT Refactor', 'Org Hierarchy API'],
-    members: [
-      { name: 'Sarah Jenkins', title: 'VP of Engineering', email: 'sarah@company.com' },
-      { name: 'Alex Rivera', title: 'Senior Backend Engineer', email: 'alex@company.com' },
-      { name: 'Priya Sharma', title: 'Frontend Specialist', email: 'priya@company.com' },
-    ],
-  },
-  {
-    id: 'd2',
-    name: 'Product & Design',
-    code: 'PROD',
-    leadName: 'David Chen',
-    leadTitle: 'Chief Product Officer',
-    headcount: 10,
-    openPositions: 2,
-    totalBudget: 550000,
-    spentBudget: 390000,
-    color: 'from-amber-500 to-rose-600',
-    projects: ['Dark Glassmorphism Design System', 'Mobile App V2', 'User Analytics Dashboard'],
-    members: [
-      { name: 'David Chen', title: 'Chief Product Officer', email: 'david@company.com' },
-      { name: 'Laura Martinez', title: 'Lead UI/UX Designer', email: 'laura@company.com' },
-    ],
-  },
-  {
-    id: 'd3',
-    name: 'Human Resources',
-    code: 'HR',
-    leadName: 'Jessica Taylor',
-    leadTitle: 'Director of People',
-    headcount: 6,
-    openPositions: 1,
-    totalBudget: 320000,
-    spentBudget: 210000,
-    color: 'from-emerald-500 to-teal-600',
-    projects: ['Automated Onboarding Portal', 'Q3 Performance Review', 'Employee Benefits Upgrade'],
-    members: [
-      { name: 'Jessica Taylor', title: 'Director of People', email: 'jessica@company.com' },
-      { name: 'Robert Vance', title: 'Talent Acquisition Manager', email: 'robert@company.com' },
-    ],
-  },
-  {
-    id: 'd4',
-    name: 'Marketing & PR',
-    code: 'MKT',
-    leadName: 'Emily Watson',
-    leadTitle: 'VP of Global Marketing',
-    headcount: 8,
-    openPositions: 2,
-    totalBudget: 480000,
-    spentBudget: 310000,
-    color: 'from-purple-500 to-pink-600',
-    projects: ['Annual Growth Summit 2026', 'SEO Rebrand Campaign', 'Inbound Content Engine'],
-    members: [{ name: 'Emily Watson', title: 'VP of Global Marketing', email: 'emily@company.com' }],
-  },
-  {
-    id: 'd5',
-    name: 'Enterprise Sales',
-    code: 'SALES',
-    leadName: 'Michael Chang',
-    leadTitle: 'Head of Worldwide Sales',
-    headcount: 14,
-    openPositions: 3,
-    totalBudget: 720000,
-    spentBudget: 540000,
-    color: 'from-blue-500 to-cyan-600',
-    projects: ['Q3 Enterprise SaaS Closing', 'Partner Referral Network', 'Salesforce Integration'],
-    members: [{ name: 'Michael Chang', title: 'Head of Worldwide Sales', email: 'michael@company.com' }],
-  },
-  {
-    id: 'd6',
-    name: 'Operations & Legal',
-    code: 'OPS',
-    leadName: 'Arthur Pendelton',
-    leadTitle: 'COO',
-    headcount: 7,
-    openPositions: 1,
-    totalBudget: 410000,
-    spentBudget: 290000,
-    color: 'from-slate-600 to-slate-800',
-    projects: ['SOC-2 Compliance Audit', 'Global Remote Work Policy'],
-    members: [{ name: 'Arthur Pendelton', title: 'COO', email: 'arthur@company.com' }],
-  },
-];
+import { useDepartments, DepartmentInfo } from '../../src/hooks/useDepartments';
 
 function DepartmentsContent() {
   const { user } = useAuth();
-  const [departments, setDepartments] = useState<DepartmentInfo[]>(INITIAL_DEPARTMENTS);
+  const { departments, createDepartment } = useDepartments();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDept, setSelectedDept] = useState<DepartmentInfo | null>(null);
 
@@ -160,29 +50,24 @@ function DepartmentsContent() {
   const totalBudget = departments.reduce((acc, d) => acc + d.totalBudget, 0);
   const totalSpent = departments.reduce((acc, d) => acc + d.spentBudget, 0);
 
-  const handleCreateDept = (e: React.FormEvent) => {
+  const handleAddDept = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!deptName.trim() || !deptCode.trim()) return;
 
-    const newDept: DepartmentInfo = {
-      id: `d-${Date.now()}`,
-      name: deptName,
-      code: deptCode.toUpperCase(),
-      leadName: deptLead || user?.name || 'Assigned Lead',
-      leadTitle: 'Department Manager',
-      headcount: 1,
-      openPositions: 1,
-      totalBudget: Number(deptBudget),
-      spentBudget: 0,
-      color: 'from-indigo-600 to-purple-600',
-      projects: ['Initial Setup'],
-      members: [{ name: deptLead || 'Assigned Lead', title: 'Department Lead', email: 'lead@company.com' }],
-    };
-
-    setDepartments([...departments, newDept]);
-    setIsAddDeptOpen(false);
-    setDeptName('');
-    setDeptCode('');
+    try {
+      await createDepartment({
+        name: deptName.trim(),
+        code: deptCode.trim().toUpperCase(),
+        leadName: deptLead.trim() || user?.name || 'Department Lead',
+        totalBudget: Number(deptBudget) || 300000,
+      });
+      setIsAddDeptOpen(false);
+      setDeptName('');
+      setDeptCode('');
+      setDeptLead('');
+    } catch (err: any) {
+      console.error('Failed to create department:', err);
+    }
   };
 
   return (
@@ -413,7 +298,7 @@ function DepartmentsContent() {
                 </button>
               </div>
 
-              <form onSubmit={handleCreateDept} className="space-y-4">
+              <form onSubmit={handleAddDept} className="space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">Department Name</label>
                   <input
@@ -507,7 +392,7 @@ function DepartmentsContent() {
               <div className="space-y-4">
                 <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Department Roster</h4>
                 <div className="space-y-2">
-                  {selectedDept.members.map((m, idx) => (
+                  {(selectedDept.members || []).map((m, idx) => (
                     <div key={idx} className="p-3 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-indigo-600/20 text-indigo-300 flex items-center justify-center font-bold text-xs">

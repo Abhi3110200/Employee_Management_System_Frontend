@@ -25,164 +25,17 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 
-export interface PerformanceGoal {
-  id: string;
-  employeeId: string;
-  employeeName: string;
-  department: string;
-  title: string;
-  category: 'OKR' | 'Project' | 'Skill' | 'Leadership';
-  dueDate: string;
-  progress: number; // 0 to 100
-  status: 'in_progress' | 'completed' | 'behind';
-}
+import { usePerformance, PerformanceGoal, EmployeeReview } from '../../src/hooks/usePerformance';
 
-export interface EmployeeReview {
-  id: string;
-  employeeId: string;
-  employeeName: string;
-  designation: string;
-  department: string;
-  rating: number; // 1.0 to 5.0
-  quarter: string; // e.g. "Q3 2026"
-  reviewStatus: 'completed' | 'pending';
-  strengths: string;
-  growthAreas: string;
-  lastUpdated: string;
-}
-
-const INITIAL_GOALS: PerformanceGoal[] = [
-  {
-    id: 'g1',
-    employeeId: 'emp1',
-    employeeName: 'Sarah Jenkins',
-    department: 'Engineering',
-    title: 'Migrate Microservices to Kubernetes Cluster',
-    category: 'Project',
-    dueDate: '2026-09-30',
-    progress: 85,
-    status: 'in_progress',
-  },
-  {
-    id: 'g2',
-    employeeId: 'emp2',
-    employeeName: 'David Chen',
-    department: 'Product',
-    title: 'Launch Mobile App V2 Design System',
-    category: 'OKR',
-    dueDate: '2026-08-31',
-    progress: 100,
-    status: 'completed',
-  },
-  {
-    id: 'g3',
-    employeeId: 'emp3',
-    employeeName: 'Emily Watson',
-    department: 'Marketing',
-    title: 'Increase Q3 Organic Inbound Leads by 35%',
-    category: 'OKR',
-    dueDate: '2026-09-15',
-    progress: 60,
-    status: 'in_progress',
-  },
-  {
-    id: 'g4',
-    employeeId: 'emp4',
-    employeeName: 'Michael Chang',
-    department: 'Sales',
-    title: 'Close $250k Enterprise SaaS Subscriptions',
-    category: 'OKR',
-    dueDate: '2026-08-15',
-    progress: 40,
-    status: 'behind',
-  },
-  {
-    id: 'g5',
-    employeeId: 'emp5',
-    employeeName: 'Jessica Taylor',
-    department: 'HR',
-    title: 'Implement Automated Employee Onboarding Portal',
-    category: 'Leadership',
-    dueDate: '2026-10-01',
-    progress: 90,
-    status: 'in_progress',
-  },
-];
-
-const INITIAL_REVIEWS: EmployeeReview[] = [
-  {
-    id: 'r1',
-    employeeId: 'emp1',
-    employeeName: 'Sarah Jenkins',
-    designation: 'Senior Full Stack Lead',
-    department: 'Engineering',
-    rating: 4.9,
-    quarter: 'Q3 2026',
-    reviewStatus: 'completed',
-    strengths: 'Exceptional architectural foresight and mentorship',
-    growthAreas: 'Delegation of minor maintenance tickets',
-    lastUpdated: '2026-08-01',
-  },
-  {
-    id: 'r2',
-    employeeId: 'emp2',
-    employeeName: 'David Chen',
-    designation: 'Principal Product Manager',
-    department: 'Product',
-    rating: 4.8,
-    quarter: 'Q3 2026',
-    reviewStatus: 'completed',
-    strengths: 'Outstanding user experience intuition and roadmap execution',
-    growthAreas: 'Cross-departmental budget forecasting',
-    lastUpdated: '2026-08-03',
-  },
-  {
-    id: 'r3',
-    employeeId: 'emp3',
-    employeeName: 'Emily Watson',
-    designation: 'Marketing Director',
-    department: 'Marketing',
-    rating: 4.6,
-    quarter: 'Q3 2026',
-    reviewStatus: 'completed',
-    strengths: 'Creative brand positioning and multi-channel strategy',
-    growthAreas: 'Data analytics deep dives',
-    lastUpdated: '2026-08-04',
-  },
-  {
-    id: 'r4',
-    employeeId: 'emp4',
-    employeeName: 'Michael Chang',
-    designation: 'Enterprise Account Executive',
-    department: 'Sales',
-    rating: 4.2,
-    quarter: 'Q3 2026',
-    reviewStatus: 'pending',
-    strengths: 'Strong client negotiation and relationship management',
-    growthAreas: 'CRM pipeline documentation speed',
-    lastUpdated: '2026-07-20',
-  },
-  {
-    id: 'r5',
-    employeeId: 'emp5',
-    employeeName: 'Jessica Taylor',
-    designation: 'HR Specialist',
-    department: 'HR',
-    rating: 4.7,
-    quarter: 'Q3 2026',
-    reviewStatus: 'completed',
-    strengths: 'Top-tier employee relations and policy enforcement',
-    growthAreas: 'HR Tech automation scripting',
-    lastUpdated: '2026-08-06',
-  },
-];
+export type { PerformanceGoal, EmployeeReview };
 
 function PerformanceContent() {
   const { user } = useAuth();
   const isSuperAdminOrHR = user?.role === 'super_admin' || user?.role === 'hr_manager';
 
-  const [goals, setGoals] = useState<PerformanceGoal[]>(INITIAL_GOALS);
-  const [reviews, setReviews] = useState<EmployeeReview[]>(INITIAL_REVIEWS);
+  // Live Backend Performance Data
+  const { goals, reviews, createGoal, updateGoalProgress, saveReview } = usePerformance();
+
   const [activeTab, setActiveTab] = useState<'goals' | 'reviews'>('goals');
   const [searchQuery, setSearchQuery] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('all');
@@ -223,65 +76,56 @@ function PerformanceContent() {
     });
   }, [reviews, searchQuery, departmentFilter]);
 
-  const handleCreateGoal = (e: React.FormEvent) => {
+  const handleCreateGoal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newGoalTitle.trim()) return;
 
-    const goal: PerformanceGoal = {
-      id: `g-${Date.now()}`,
-      employeeId: `emp-${Date.now()}`,
-      employeeName: newGoalAssignee,
-      department: newGoalDept,
-      title: newGoalTitle,
-      category: newGoalCategory,
-      dueDate: newGoalDueDate || '2026-09-30',
-      progress: Number(newGoalProgress),
-      status: Number(newGoalProgress) === 100 ? 'completed' : 'in_progress',
-    };
-
-    setGoals([goal, ...goals]);
-    setIsGoalModalOpen(false);
-    setNewGoalTitle('');
+    try {
+      await createGoal({
+        employeeName: newGoalAssignee,
+        department: newGoalDept,
+        title: newGoalTitle.trim(),
+        category: newGoalCategory,
+        dueDate: newGoalDueDate || '2026-09-30',
+        progress: Number(newGoalProgress),
+      });
+      setIsGoalModalOpen(false);
+      setNewGoalTitle('');
+    } catch (err: any) {
+      console.error('Failed to create goal:', err);
+    }
   };
 
-  const handleSaveReview = (e: React.FormEvent) => {
+  const handleSaveReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedReviewEmp) return;
 
-    setReviews((prev) =>
-      prev.map((r) => {
-        if (r.id === selectedReviewEmp.id) {
-          return {
-            ...r,
-            rating: Number(ratingScore),
-            reviewStatus: 'completed',
-            strengths: strengthsInput || r.strengths,
-            growthAreas: growthInput || r.growthAreas,
-            lastUpdated: new Date().toISOString().split('T')[0],
-          };
-        }
-        return r;
-      })
-    );
-
-    setIsReviewModalOpen(false);
-    setSelectedReviewEmp(null);
+    try {
+      await saveReview({
+        employeeId: selectedReviewEmp.employeeId || selectedReviewEmp.id,
+        employeeName: selectedReviewEmp.employeeName,
+        rating: Number(ratingScore),
+        strengths: strengthsInput,
+        growthAreas: growthInput,
+        quarter: selectedReviewEmp.quarter || 'Q3 2026',
+      });
+      setIsReviewModalOpen(false);
+      setSelectedReviewEmp(null);
+    } catch (err: any) {
+      console.error('Failed to save review:', err);
+    }
   };
 
-  const handleProgressUpdate = (goalId: string, delta: number) => {
-    setGoals((prev) =>
-      prev.map((g) => {
-        if (g.id === goalId) {
-          const newProg = Math.min(100, Math.max(0, g.progress + delta));
-          return {
-            ...g,
-            progress: newProg,
-            status: newProg === 100 ? 'completed' : newProg < 40 ? 'behind' : 'in_progress',
-          };
-        }
-        return g;
-      })
-    );
+  const handleProgressUpdate = async (goalId: string, delta: number) => {
+    const goal = goals.find((g) => g.id === goalId);
+    if (!goal) return;
+
+    const newProg = Math.min(100, Math.max(0, goal.progress + delta));
+    try {
+      await updateGoalProgress({ id: goalId, progress: newProg });
+    } catch (err: any) {
+      console.error('Failed to update progress:', err);
+    }
   };
 
   const avgRating = (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1);

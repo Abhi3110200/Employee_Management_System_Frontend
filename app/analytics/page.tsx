@@ -21,15 +21,18 @@ import {
   Layers,
 } from 'lucide-react';
 
+import { useAnalytics } from '../../src/hooks/useAnalytics';
+
 export function AnalyticsContent() {
   const { user } = useAuth();
   const { employees } = useEmployees();
+  const { analytics, isLoading: isAnalyticsLoading } = useAnalytics();
 
   const [selectedDept, setSelectedDept] = useState<string>('all');
   const [selectedPeriod, setSelectedPeriod] = useState<string>('2026-Q3');
 
-  // Interactive Salary Bands
-  const salaryBands = [
+  // Interactive Salary Bands (Fallback to dynamic analytics metrics)
+  const salaryBands = analytics?.salaryBands || [
     { label: '$30k - $60k', count: 6, percentage: 12, color: 'bg-indigo-500' },
     { label: '$60k - $90k', count: 14, percentage: 28, color: 'bg-purple-500' },
     { label: '$90k - $120k', count: 18, percentage: 36, color: 'bg-emerald-500' },
@@ -38,7 +41,7 @@ export function AnalyticsContent() {
   ];
 
   // Department Compensation breakdown
-  const departmentPayMetrics = [
+  const departmentPayMetrics = analytics?.departmentPayMetrics || [
     { name: 'Engineering', avgSalary: 128000, minSalary: 85000, maxSalary: 185000, headcount: 18 },
     { name: 'Product', avgSalary: 115000, minSalary: 78000, maxSalary: 165000, headcount: 10 },
     { name: 'Sales', avgSalary: 98000, minSalary: 55000, maxSalary: 175000, headcount: 14 },

@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { ProtectedRoute } from '../../src/components/ProtectedRoute';
 import { Navbar } from '../../src/components/Navbar';
 import { useAuth } from '../../src/hooks/useAuth';
-import { useEmployees } from '../../src/hooks/useEmployees';
+import { useLeaves, LeaveRequest } from '../../src/hooks/useLeaves';
 import {
   CalendarDays,
   Plus,
@@ -27,104 +27,21 @@ import {
   Calendar,
 } from 'lucide-react';
 
-export interface LeaveRequest {
-  id: string;
-  employeeId: string;
-  employeeName: string;
-  department: string;
-  type: 'casual' | 'sick' | 'paid' | 'remote';
-  startDate: string;
-  endDate: string;
-  daysCount: number;
-  reason: string;
-  status: 'pending' | 'approved' | 'rejected';
-  appliedDate: string;
-  reviewedBy?: string;
-  reviewComment?: string;
-}
-
-const INITIAL_LEAVE_REQUESTS: LeaveRequest[] = [
-  {
-    id: 'l1',
-    employeeId: 'emp1',
-    employeeName: 'Sarah Jenkins',
-    department: 'Engineering',
-    type: 'casual',
-    startDate: '2026-08-12',
-    endDate: '2026-08-14',
-    daysCount: 3,
-    reason: 'Family wedding and travel',
-    status: 'pending',
-    appliedDate: '2026-08-08',
-  },
-  {
-    id: 'l2',
-    employeeId: 'emp2',
-    employeeName: 'David Chen',
-    department: 'Product',
-    type: 'sick',
-    startDate: '2026-08-10',
-    endDate: '2026-08-11',
-    daysCount: 2,
-    reason: 'Doctor prescribed recovery rest',
-    status: 'approved',
-    appliedDate: '2026-08-07',
-    reviewedBy: 'Super Admin',
-  },
-  {
-    id: 'l3',
-    employeeId: 'emp3',
-    employeeName: 'Emily Watson',
-    department: 'Marketing',
-    type: 'remote',
-    startDate: '2026-08-15',
-    endDate: '2026-08-16',
-    daysCount: 2,
-    reason: 'Home internet installation & parcel delivery',
-    status: 'pending',
-    appliedDate: '2026-08-09',
-  },
-  {
-    id: 'l4',
-    employeeId: 'emp4',
-    employeeName: 'Michael Chang',
-    department: 'Sales',
-    type: 'paid',
-    startDate: '2026-08-20',
-    endDate: '2026-08-27',
-    daysCount: 6,
-    reason: 'Annual summer vacation trip',
-    status: 'approved',
-    appliedDate: '2026-08-01',
-    reviewedBy: 'HR Manager',
-  },
-  {
-    id: 'l5',
-    employeeId: 'emp5',
-    employeeName: 'Jessica Taylor',
-    department: 'HR',
-    type: 'sick',
-    startDate: '2026-08-05',
-    endDate: '2026-08-05',
-    daysCount: 1,
-    reason: 'Migraine headache rest',
-    status: 'rejected',
-    appliedDate: '2026-08-04',
-    reviewedBy: 'Super Admin',
-    reviewComment: 'Insufficient leave notice during critical project sprint',
-  },
-];
-
-function AttendanceContent() {
+function AttendanceContent(): React.JSX.Element {
   const { user } = useAuth();
-  const { employees } = useEmployees();
   const isSuperAdminOrHR = user?.role === 'super_admin' || user?.role === 'hr_manager';
 
-  const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>(INITIAL_LEAVE_REQUESTS);
   const [activeTab, setActiveTab] = useState<'overview' | 'calendar'>('overview');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // Live Backend Data
+  const { leaveRequests, applyLeave, updateLeaveStatus } = useLeaves({
+    status: filterStatus,
+    type: filterType,
+    search: searchQuery,
+  });
 
   // Modal State
   const todayStr = new Date().toISOString().split('T')[0];
@@ -145,19 +62,9 @@ function AttendanceContent() {
   const approvedCount = leaveRequests.filter((r) => r.status === 'approved').length;
   const rejectedCount = leaveRequests.filter((r) => r.status === 'rejected').length;
 
-  const filteredRequests = useMemo(() => {
-    return leaveRequests.filter((req) => {
-      const matchesSearch =
-        req.employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        req.reason.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        req.department.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus = filterStatus === 'all' || req.status === filterStatus;
-      const matchesType = filterType === 'all' || req.type === filterType;
-      return matchesSearch && matchesStatus && matchesType;
-    });
-  }, [leaveRequests, searchQuery, filterStatus, filterType]);
+  const filteredRequests = leaveRequests;
 
-  const handleApplySubmit = (e: React.FormEvent) => {
+  const handleApplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
 
@@ -176,52 +83,35 @@ function AttendanceContent() {
       return;
     }
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-
-    const newReq: LeaveRequest = {
-      id: `l-${Date.now()}`,
-      employeeId: user?.id || 'emp-user',
-      employeeName: user?.name || 'Current User',
-      department: user?.department || 'Operations',
-      type: leaveType,
-      startDate,
-      endDate,
-      daysCount: days,
-      reason,
-      status: 'pending',
-      appliedDate: new Date().toISOString().split('T')[0],
-    };
-
-    setLeaveRequests([newReq, ...leaveRequests]);
-    setIsApplyModalOpen(false);
-    setStartDate('');
-    setEndDate('');
-    setReason('');
+    try {
+      await applyLeave({
+        type: leaveType,
+        startDate,
+        endDate,
+        reason: reason.trim(),
+      });
+      setIsApplyModalOpen(false);
+      setReason('');
+    } catch (err: any) {
+      setFormError(err.message || 'Failed to submit leave request');
+    }
   };
 
-  const handleReviewSubmit = () => {
+  const handleReviewSubmit = async () => {
     if (!selectedRequest || !reviewAction) return;
 
-    setLeaveRequests((prev) =>
-      prev.map((req) => {
-        if (req.id === selectedRequest.id) {
-          return {
-            ...req,
-            status: reviewAction,
-            reviewedBy: user?.name || (user?.role === 'super_admin' ? 'Super Admin' : 'HR Manager'),
-            reviewComment: reviewComment.trim() || undefined,
-          };
-        }
-        return req;
-      })
-    );
-
-    setSelectedRequest(null);
-    setReviewAction(null);
-    setReviewComment('');
+    try {
+      await updateLeaveStatus({
+        id: selectedRequest.id,
+        status: reviewAction,
+        reviewComment: reviewComment.trim() || undefined,
+      });
+      setSelectedRequest(null);
+      setReviewAction(null);
+      setReviewComment('');
+    } catch (err: any) {
+      console.error('Failed to update leave status:', err);
+    }
   };
 
   const getTypeBadge = (type: string) => {
