@@ -24,6 +24,8 @@ import {
 
 import { useDepartments, DepartmentInfo } from '../../src/hooks/useDepartments';
 
+export type { DepartmentInfo };
+
 function DepartmentsContent() {
   const { user } = useAuth();
   const { departments, createDepartment } = useDepartments();
