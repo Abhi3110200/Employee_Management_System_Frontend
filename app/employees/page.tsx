@@ -28,6 +28,7 @@ import {
   FileSpreadsheet,
   RotateCcw,
   CheckCircle,
+  Calendar,
 } from 'lucide-react';
 
 function EmployeeDirectoryContent() {
@@ -885,12 +886,21 @@ function EmployeeDirectoryContent() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-400 mb-1">Joining Date</label>
-                  <input
-                    type="date"
-                    value={formData.joiningDate}
-                    onChange={(e) => setFormData({ ...formData, joiningDate: e.target.value })}
-                    className="w-full py-2.5 px-3 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                  />
+                  <div
+                    onClick={(e) => {
+                      const input = e.currentTarget.querySelector('input');
+                      if (input && 'showPicker' in input) (input as any).showPicker();
+                    }}
+                    className="relative flex items-center bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 hover:border-indigo-500/60 focus-within:border-indigo-500 cursor-pointer transition-all"
+                  >
+                    <Calendar className="w-4 h-4 text-indigo-400 mr-2 shrink-0 pointer-events-none" />
+                    <input
+                      type="date"
+                      value={formData.joiningDate}
+                      onChange={(e) => setFormData({ ...formData, joiningDate: e.target.value })}
+                      className="w-full bg-transparent text-xs text-white font-semibold focus:outline-none cursor-pointer"
+                    />
+                  </div>
                 </div>
 
                 <div>

@@ -153,6 +153,34 @@ html.light textarea::placeholder {
   color: #94a3b8 !important;
 }
 
+/* Custom Date Selector Indicator & Pointer Styling */
+input[type="date"] {
+  cursor: pointer;
+  color-scheme: dark;
+}
+
+html.light input[type="date"] {
+  color-scheme: light;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(0.85) hue-rotate(180deg);
+  opacity: 0.9;
+  padding: 4px;
+  border-radius: 6px;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  transform: scale(1.15);
+  opacity: 1;
+}
+
+html.light input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none !important;
+}
+
 /* Accent Badges & Pills in Light Mode */
 html.light .bg-indigo-500\/10,
 html.light .bg-indigo-600\/20 {

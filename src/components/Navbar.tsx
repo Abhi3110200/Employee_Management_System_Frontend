@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '../hooks/useAuth';
 import { ThemeToggle } from './ThemeToggle';
 import {
@@ -18,15 +18,113 @@ import {
   X,
   LayoutDashboard,
   ChevronRight,
-  ShieldAlert,
+  Bell,
+  CheckCheck,
+  Trash2,
+  ExternalLink,
+  Clock,
+  CheckCircle2,
+  AlertTriangle,
+  Target,
+  Sparkles,
 } from 'lucide-react';
+
+export interface NotificationItem {
+  id: string;
+  type: 'task_assigned' | 'leave_update' | 'attendance_alert' | 'performance_review';
+  title: string;
+  message: string;
+  timestamp: string;
+  isRead: boolean;
+  linkHref: string;
+}
+
+const INITIAL_NOTIFICATIONS: NotificationItem[] = [
+  {
+    id: 'n1',
+    type: 'task_assigned',
+    title: 'New Goal Assigned',
+    message: 'Super Admin assigned you "Migrate Microservices to Kubernetes Cluster". Target due: Sep 30.',
+    timestamp: '10m ago',
+    isRead: false,
+    linkHref: '/performance',
+  },
+  {
+    id: 'n2',
+    type: 'leave_update',
+    title: 'Leave Application Approved',
+    message: 'HR Manager approved your 3-day Casual Leave request (Aug 12 – Aug 14).',
+    timestamp: '1h ago',
+    isRead: false,
+    linkHref: '/attendance',
+  },
+  {
+    id: 'n3',
+    type: 'attendance_alert',
+    title: 'Attendance Action Required',
+    message: 'You have 1 pending WFH request awaiting manager approval.',
+    timestamp: '3h ago',
+    isRead: false,
+    linkHref: '/attendance',
+  },
+  {
+    id: 'n4',
+    type: 'performance_review',
+    title: 'Q3 Performance Score Recorded',
+    message: 'Your Q3 2026 performance rating score of 4.9 / 5.0 has been finalized.',
+    timestamp: '1d ago',
+    isRead: true,
+    linkHref: '/performance',
+  },
+];
 
 export function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, logout, isLoggingOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
+  const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
+  const [notifFilter, setNotifFilter] = useState<'all' | 'unread'>('all');
 
   const isSuperAdminOrHR = user?.role === 'super_admin' || user?.role === 'hr_manager';
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  const filteredNotifications = notifications.filter((n) => {
+    if (notifFilter === 'unread') return !n.isRead;
+    return true;
+  });
+
+  const handleMarkAllRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+  };
+
+  const handleNotificationClick = (notif: NotificationItem) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === notif.id ? { ...n, isRead: true } : n))
+    );
+    setNotifDropdownOpen(false);
+    router.push(notif.linkHref);
+  };
+
+  const handleDeleteNotification = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
+
+  const getNotifIcon = (type: NotificationItem['type']) => {
+    switch (type) {
+      case 'task_assigned':
+        return <Target className="w-4 h-4 text-amber-400 shrink-0" />;
+      case 'leave_update':
+        return <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />;
+      case 'attendance_alert':
+        return <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />;
+      case 'performance_review':
+        return <Sparkles className="w-4 h-4 text-purple-400 shrink-0" />;
+    }
+  };
 
   const navItems = [
     { label: 'Dashboard', href: '/', icon: LayoutDashboard, roleRestricted: false },
@@ -132,6 +230,132 @@ export function Navbar() {
 
           {/* Right Action Tools */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Notification Bell Dropdown Button */}
+            <div className="relative">
+              <button
+                onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
+                className={`p-2.5 rounded-xl border transition-all duration-200 relative flex items-center justify-center ${
+                  notifDropdownOpen
+                    ? 'bg-indigo-600/20 border-indigo-500 text-indigo-400'
+                    : 'bg-slate-800/80 hover:bg-slate-700/80 border-slate-700 text-slate-300 hover:text-white'
+                }`}
+                title="Notifications"
+                aria-label="Open notifications drawer"
+              >
+                <Bell className="w-4 h-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white font-black text-[10px] flex items-center justify-center border-2 border-slate-900 animate-pulse">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Notification Popover Drawer */}
+              {notifDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                  <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
+                    <div className="flex items-center gap-2">
+                      <Bell className="w-4 h-4 text-indigo-400" />
+                      <h3 className="text-sm font-bold text-white">Notifications</h3>
+                      {unreadCount > 0 && (
+                        <span className="px-2 py-0.5 text-[10px] font-extrabold rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                          {unreadCount} Unread
+                        </span>
+                      )}
+                    </div>
+
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={handleMarkAllRead}
+                        className="text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+                      >
+                        <CheckCheck className="w-3.5 h-3.5" />
+                        <span>Mark all read</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Filter tabs */}
+                  <div className="flex items-center gap-2 px-4 py-2 border-b border-slate-800/80 bg-slate-900/40 text-xs">
+                    <button
+                      onClick={() => setNotifFilter('all')}
+                      className={`px-3 py-1 rounded-lg font-semibold transition-all ${
+                        notifFilter === 'all'
+                          ? 'bg-indigo-600 text-white'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      All ({notifications.length})
+                    </button>
+                    <button
+                      onClick={() => setNotifFilter('unread')}
+                      className={`px-3 py-1 rounded-lg font-semibold transition-all ${
+                        notifFilter === 'unread'
+                          ? 'bg-indigo-600 text-white'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      Unread ({unreadCount})
+                    </button>
+                  </div>
+
+                  {/* Notification List */}
+                  <div className="max-h-80 overflow-y-auto divide-y divide-slate-800/60">
+                    {filteredNotifications.length === 0 ? (
+                      <div className="p-8 text-center text-xs text-slate-500">
+                        No notifications found.
+                      </div>
+                    ) : (
+                      filteredNotifications.map((notif) => (
+                        <div
+                          key={notif.id}
+                          onClick={() => handleNotificationClick(notif)}
+                          className={`p-3.5 hover:bg-slate-800/60 transition-colors cursor-pointer flex items-start gap-3 relative group ${
+                            !notif.isRead ? 'bg-indigo-950/20' : ''
+                          }`}
+                        >
+                          <div className="p-2 rounded-xl bg-slate-800 border border-slate-700/80 shrink-0 mt-0.5">
+                            {getNotifIcon(notif.type)}
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <h4 className="text-xs font-bold text-white truncate">{notif.title}</h4>
+                              <span className="text-[10px] text-slate-500 shrink-0">{notif.timestamp}</span>
+                            </div>
+                            <p className="text-[11px] text-slate-300 mt-0.5 leading-snug line-clamp-2">
+                              {notif.message}
+                            </p>
+                          </div>
+
+                          {!notif.isRead && (
+                            <div className="w-2 h-2 rounded-full bg-rose-500 shrink-0 self-center"></div>
+                          )}
+
+                          <button
+                            onClick={(e) => handleDeleteNotification(e, notif.id)}
+                            className="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-rose-400 transition-opacity"
+                            title="Dismiss"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  <div className="p-3 border-t border-slate-800 bg-slate-950/60 text-center">
+                    <button
+                      onClick={() => setNotifDropdownOpen(false)}
+                      className="text-xs font-semibold text-slate-400 hover:text-white"
+                    >
+                      Close Drawer
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {user && (
               <div className="hidden md:flex items-center gap-2 pl-2 pr-3 py-1 rounded-xl bg-slate-800/50 border border-slate-700/60">
                 <div className="w-7 h-7 rounded-lg bg-indigo-600/30 text-indigo-300 flex items-center justify-center font-bold text-xs border border-indigo-500/30">

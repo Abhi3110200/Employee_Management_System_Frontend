@@ -127,10 +127,11 @@ function AttendanceContent() {
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Modal State
+  const todayStr = new Date().toISOString().split('T')[0];
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [leaveType, setLeaveType] = useState<'casual' | 'sick' | 'paid' | 'remote'>('casual');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState(todayStr);
+  const [endDate, setEndDate] = useState(todayStr);
   const [reason, setReason] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -699,26 +700,101 @@ function AttendanceContent() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">Start Date</label>
-                    <input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
-                      required
-                    />
+                {/* Date Presets & Custom Date Selector */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs font-semibold text-slate-300">Select Dates</label>
+                    <div className="flex items-center gap-1 text-[10px]">
+                      <span className="text-slate-400 font-medium">Quick Presets:</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const now = new Date().toISOString().split('T')[0];
+                          setStartDate(now);
+                          setEndDate(now);
+                        }}
+                        className="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-indigo-300 font-bold border border-slate-700 transition-all"
+                      >
+                        Today
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+                          setStartDate(tomorrow);
+                          setEndDate(tomorrow);
+                        }}
+                        className="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-indigo-300 font-bold border border-slate-700 transition-all"
+                      >
+                        Tomorrow
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const now = new Date().toISOString().split('T')[0];
+                          const threeDays = new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0];
+                          setStartDate(now);
+                          setEndDate(threeDays);
+                        }}
+                        className="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-indigo-300 font-bold border border-slate-700 transition-all"
+                      >
+                        3 Days
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const now = new Date().toISOString().split('T')[0];
+                          const week = new Date(Date.now() + 6 * 86400000).toISOString().split('T')[0];
+                          setStartDate(now);
+                          setEndDate(week);
+                        }}
+                        className="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-indigo-300 font-bold border border-slate-700 transition-all"
+                      >
+                        1 Week
+                      </button>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">End Date</label>
-                    <input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
-                      required
-                    />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <span className="block text-[11px] font-medium text-slate-400 mb-1">Start Date</span>
+                      <div
+                        onClick={(e) => {
+                          const input = e.currentTarget.querySelector('input');
+                          if (input && 'showPicker' in input) (input as any).showPicker();
+                        }}
+                        className="relative flex items-center bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 hover:border-indigo-500/60 focus-within:border-indigo-500 cursor-pointer transition-all"
+                      >
+                        <Calendar className="w-4 h-4 text-indigo-400 mr-2 shrink-0 pointer-events-none" />
+                        <input
+                          type="date"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                          className="w-full bg-transparent text-xs text-white font-semibold focus:outline-none cursor-pointer"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="block text-[11px] font-medium text-slate-400 mb-1">End Date</span>
+                      <div
+                        onClick={(e) => {
+                          const input = e.currentTarget.querySelector('input');
+                          if (input && 'showPicker' in input) (input as any).showPicker();
+                        }}
+                        className="relative flex items-center bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 hover:border-indigo-500/60 focus-within:border-indigo-500 cursor-pointer transition-all"
+                      >
+                        <Calendar className="w-4 h-4 text-indigo-400 mr-2 shrink-0 pointer-events-none" />
+                        <input
+                          type="date"
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
+                          className="w-full bg-transparent text-xs text-white font-semibold focus:outline-none cursor-pointer"
+                          required
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
 

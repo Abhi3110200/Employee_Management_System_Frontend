@@ -694,12 +694,21 @@ function PerformanceContent() {
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1">Target Due Date</label>
-                    <input
-                      type="date"
-                      value={newGoalDueDate}
-                      onChange={(e) => setNewGoalDueDate(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
-                    />
+                    <div
+                      onClick={(e) => {
+                        const input = e.currentTarget.querySelector('input');
+                        if (input && 'showPicker' in input) (input as any).showPicker();
+                      }}
+                      className="relative flex items-center bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 hover:border-amber-500/60 focus-within:border-amber-500 cursor-pointer transition-all"
+                    >
+                      <Calendar className="w-4 h-4 text-amber-400 mr-2 shrink-0 pointer-events-none" />
+                      <input
+                        type="date"
+                        value={newGoalDueDate}
+                        onChange={(e) => setNewGoalDueDate(e.target.value)}
+                        className="w-full bg-transparent text-xs text-white font-semibold focus:outline-none cursor-pointer"
+                      />
+                    </div>
                   </div>
                 </div>
 
